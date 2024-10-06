@@ -1,0 +1,120 @@
+Creating classes in Python involves defining a class using the `class` keyword, followed by the class name and a colon. Inside the class, you can define attributes (variables) and methods (functions) that define the behavior of the class. Here's a simple example to illustrate the concept:
+
+### Basic Class Definition
+
+```python
+class Dog:
+    # Class attribute
+    species = "Canis familiaris"
+
+    # Initializer / Instance attributes
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    # Instance method
+    def description(self):
+        return f"{self.name} is {self.age} years old"
+
+    # Another instance method
+    def speak(self, sound):
+        return f"{self.name} says {sound}"
+
+# Creating instances of the Dog class
+dog1 = Dog("Buddy", 3)
+dog2 = Dog("Lucy", 5)
+
+# Accessing class attributes
+print(dog1.species)  # Output: Canis familiaris
+print(dog2.species)  # Output: Canis familiaris
+
+# Accessing instance attributes
+print(dog1.name)  # Output: Buddy
+print(dog1.age)   # Output: 3
+
+# Calling instance methods
+print(dog1.description())  # Output: Buddy is 3 years old
+print(dog2.speak("Woof Woof"))  # Output: Lucy says Woof Woof
+```
+
+### Explanation
+
+1. **Class Definition**: The class `Dog` is defined using the `class` keyword.
+2. **Class Attribute**: `species` is a class attribute shared by all instances of the class.
+3. **Initializer Method**: The `__init__` method is a special method called when an instance of the class is created. It initializes the instance attributes `name` and `age`.
+4. **Instance Methods**: Methods like `description` and `speak` are instance methods that operate on an instance of the class.
+
+### Inheritance in Classes
+
+Inheritance allows you to create a new class that is a modified version of an existing class. Here's an example:
+
+```python
+class Dog:
+    species = "Canis familiaris"
+
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def description(self):
+        return f"{self.name} is {self.age} years old"
+
+    def speak(self, sound):
+        return f"{self.name} says {sound}"
+
+# Inheriting from Dog class
+class Bulldog(Dog):
+    def run(self, speed):
+        return f"{self.name} runs {speed}"
+
+# Creating an instance of Bulldog
+bulldog = Bulldog("Rex", 4)
+
+# Accessing inherited attributes and methods
+print(bulldog.description())  # Output: Rex is 4 years old
+print(bulldog.speak("Woof"))  # Output: Rex says Woof
+print(bulldog.run("slowly"))  # Output: Rex runs slowly
+```
+
+### Explanation
+
+1. **Inheritance**: The `Bulldog` class inherits from the `Dog` class, meaning it has access to all attributes and methods of the `Dog` class.
+2. **New Method**: The `Bulldog` class has its own method `run` that is not present in the `Dog` class.
+
+### Encapsulation and Private Attributes
+
+Encapsulation restricts access to certain components of an object. In Python, this is done by prefixing an attribute with an underscore.
+
+```python
+class Dog:
+    def __init__(self, name, age):
+        self._name = name  # protected attribute
+        self.__age = age   # private attribute
+
+    def get_age(self):
+        return self.__age
+
+    def set_age(self, age):
+        if age > 0:
+            self.__age = age
+        else:
+            raise ValueError("Age must be positive")
+
+dog = Dog("Buddy", 3)
+print(dog._name)      # Output: Buddy
+print(dog.get_age())  # Output: 3
+
+dog.set_age(4)
+print(dog.get_age())  # Output: 4
+
+# Trying to access private attribute directly
+# print(dog.__age)    # Raises AttributeError
+```
+
+### Explanation
+
+1. **Protected Attribute**: `self._name` is a protected attribute, which by convention should not be accessed directly outside the class.
+2. **Private Attribute**: `self.__age` is a private attribute, which is not accessible directly from outside the class.
+3. **Getters and Setters**: Methods like `get_age` and `set_age` are used to access and modify the private attribute.
+
+These examples cover the basics of class creation, inheritance, and encapsulation in Python.
