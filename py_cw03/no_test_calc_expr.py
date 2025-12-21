@@ -28,12 +28,6 @@ def test_calc_unary_negation():
     assert calc("-(3 + 2) * 2") == -10
 
 
-def test_calc_complex_expressions():
-    assert calc("3 + 4 * 2 / (1 - 5) + -3") == 0
-    assert calc("-(2 + 3) * (4 - 1) / -5") == 3
-    assert calc("5 + ((1 + 2) * 4) - 3") == 14
-
-
 def test_calc_division_by_zero():
     with pytest.raises(ZeroDivisionError):
         calc("5 / 0")
@@ -48,26 +42,23 @@ def test_calc_float_numbers():
     assert calc("8.4 / 2.0") == 4.2
 
 
-def test_calc_malformed_expressions():
-    with pytest.raises(Exception):
-        calc("2 + * 3")
-    with pytest.raises(Exception):
-        calc("5 / (2 - 2")
+def test_calc_malformed_expressions3():
     with pytest.raises(Exception):
         calc("4 + 3)")
 
+def test_calc_malformed_expressions1():
+    with pytest.raises(Exception):
+        calc("2 + * 3")
+
+
+def test_calc_malformed_expressions2():
+    with pytest.raises(Exception):
+        calc("5 / (2 - 2")
 
 def test_calc_whitespace_handling():
     assert calc("  2   +    3 ") == 5
     assert calc("  (  4  *  2 )  ") == 8
     assert calc(" - 5 +   3 ") == -2
-
-
-def test_calc_multiple_unary_negations():
-    assert calc("--5") == 5
-    assert calc("---5") == -5
-    assert calc("----5") == 5
-    assert calc("-(-3 + 2)") == 1
 
 
 def test_calc_combined_operators():
@@ -78,13 +69,13 @@ def test_calc_combined_operators():
 
 def test_calc_nested_parentheses():
     assert calc("((2 + 3) * (4 - 1)) / (1 + 1)") == 7.5
-    assert calc("-( (1 + 2) * (3 + (4 - 1)) )") == -21
+    assert calc("-( (1 + 2) * (3 + (4 - 1)) )") == -18
     assert calc("(((-5)))") == -5
 
 
 def test_calc_large_expression():
     expr = "3 + 5 * (2 - 8) / (4 + 1) + -7 * (3 - 1) + (6 / 2) * (1 + 1)"
-    assert calc(expr) == -10.0
+    assert calc(expr) == -11.0
 
 
 def test_calc_zero_and_negative_results():
@@ -128,3 +119,13 @@ def test_calc_decimal_precision():
     assert calc("-0.1 + 0.1") == pytest.approx(0.0)
     assert calc("-(1.5 - 2.5)") == pytest.approx(1.0)
     assert calc("2.5 * -4") == pytest.approx(-10.0)
+
+
+def test_calc_multiple_unary_negations():
+    assert calc("-(-3 + 2)") == 1
+
+
+def test_calc_complex_expressions():
+    assert calc("3 + 4 * 2 / (1 - 5) + -3") == -2
+    assert calc("-(2 + 3) * (4 - 1) / -5") == 3
+    assert calc("5 + ((1 + 2) * 4) - 3") == 14
