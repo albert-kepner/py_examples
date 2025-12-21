@@ -1,3 +1,5 @@
+VERBOSE = False
+
 def calc(expression):
     ## First break the input expression up into tokens
     ## 1) Replace all spaces with nothing
@@ -27,17 +29,30 @@ def calc(expression):
     precedence = {'!': 4, '*': 3, '/': 3, '+': 2, '-': 2}
     right_associative = {'!'}
     for token in tokens:
+        if VERBOSE:
+            print(f'{token=}')
+            print(f'{output_queue=}')
+            print(f'{operator_stack=}')
         if isinstance(token, (int, float)):
+            if VERBOSE:
+                print('adding number to output queue')
             output_queue.append(token)
         elif token in precedence:
             while (operator_stack and operator_stack[-1] != '(' and
                    (precedence[operator_stack[-1]] > precedence[token] or
                     (precedence[operator_stack[-1]] == precedence[token] and token not in right_associative))):
                 output_queue.append(operator_stack.pop())
+                if VERBOSE:
+                    print(f'popped operator {output_queue[-1]} to output queue')
             operator_stack.append(token)
+            if VERBOSE:
+                print(f'adding operator {token} to operator stack')
         elif token == '(':
+            if VERBOSE:
+                print(f'adding ( to operator stack')
             operator_stack.append(token)
         elif token == ')':
+            assert '(' in operator_stack, "Mismatched parentheses"
             while operator_stack and operator_stack[-1] != '(':
                 output_queue.append(operator_stack.pop())
             if operator_stack:
@@ -45,6 +60,8 @@ def calc(expression):
     while operator_stack:
         output_queue.append(operator_stack.pop())
     ## 5) Evaluate the RPN expression and return the result.
+    if VERBOSE:
+        print(f'RPN output queue: {output_queue}')
     eval_stack = []
     for token in output_queue:
         if isinstance(token, (int, float)):
