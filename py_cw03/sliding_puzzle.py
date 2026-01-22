@@ -1,6 +1,5 @@
 import copy
-import heapq
-from collections import namedtuple
+from collections import namedtuple, deque
 
 MazeState = namedtuple('MazeState',
                        [
@@ -10,10 +9,23 @@ MazeState = namedtuple('MazeState',
                            'maze'])
 first_maze = None
 goal_maze = None
-maze_history = []
-maze_state_queue = []
+maze_history: set[tuple[list[int]]] = set()
+maze_state_queue: deque[MazeState] = deque()
 first_state: MazeState | None = None
 
+
+def convert_maze(maze_p: list[list[int]]) -> tuple[tuple[int]]:
+    new_rows = []
+    for row in maze_p:
+        new_rows.append(tuple(row))
+    return tuple(new_rows)
+
+def unfreeze(maze_p: tuple[tuple[int]]) -> list[list[int]]:
+    new_rows = []
+    for row in maze_p:
+        cells = list(row)
+        new_rows.append(cells)
+    return new_rows
 
 
 def slide_puzzle(ar) -> list[int]:
@@ -21,20 +33,16 @@ def slide_puzzle(ar) -> list[int]:
     global first_state
     global maze_history
     global maze_state_queue
-    maze_history = []
-    maze_state_queue = []
-    first_maze = copy.deepcopy(ar)
+    maze_history = set()
+    maze_state_queue = deque()
+    first_maze1 = convert_maze(ar)
     zero_loc = find_zero(ar)
-    make_goal_maze(first_maze)
+    make_goal_maze(ar)
     print_maze(ar)
     print(f'{zero_loc=}')
-    first_state = MazeState(zero_loc=zero_loc, move_history=[], move_number_history=[], maze=first_maze)
-    maze_score1 = maze_score(first_state.maze)
-    print(f'{maze_score1=}')
-    first_item = (maze_score1, first_state)
-    ## print(f'{first_item=}')
-    heapq.heappush(maze_state_queue, first_item)
-    maze_history.append(first_state.maze)
+    first_state = MazeState(zero_loc=zero_loc, move_history=[], move_number_history=[], maze=ar)
+    maze_state_queue.append(first_state)
+    maze_history.add(first_maze1)
     goal_state: MazeState | None = None
     while not goal_state:
         goal_state = next_moves()
@@ -50,8 +58,7 @@ def next_moves() -> MazeState | None:
     print(f'in next_moves: {len(maze_state_queue)=}')
     if len(maze_state_queue) == 0:
         raise Exception('maze_state_queue.is_empty')
-    maze_score, this_state = heapq.heappop(maze_state_queue)
-    print(f'in next_moves: selected {maze_score=}')
+    this_state = maze_state_queue.popleft()
     maze = this_state.maze
     print(f'in next_moves: Expanding from this maze.')
     print(f'len(max_history): {len(maze_history)=}')
@@ -88,17 +95,14 @@ def compute_next_state(move: tuple[int,int], this_state: MazeState) -> MazeState
     new_move_history.append(move)
     new_move_number_history = copy.deepcopy(this_state.move_number_history)
     new_move_number_history.append(number_moved)
-    if not new_maze in maze_history:
+    new_maze1 = convert_maze(new_maze)
+    if not new_maze1 in maze_history:
         new_state = MazeState(zero_loc=move,
                               move_history=new_move_history,
                               move_number_history=new_move_number_history,
                               maze=new_maze)
-        new_maze_score = maze_score(new_maze)
-        ## print(f'{new_maze_score=}')
-        new_maze_item = (new_maze_score, new_state)
-        ## print(f'{new_maze_item=}')
-        heapq.heappush(maze_state_queue, new_maze_item)
-        maze_history.append(new_maze)
+        maze_state_queue.append(new_state)
+        maze_history.add(new_maze1)
 
         ## print(f'in compute_next_state: {new_state.move_history=}')
         return new_state
@@ -115,12 +119,6 @@ def get_valid_moves(zero_loc: int, last_move: int, n: int) -> list[tuple[int, in
                 valid_moves.append((r, c))
     return valid_moves
 
-# def history_test():
-#     maze_history.append(copy.deepcopy(first_maze))
-#     maze_history.append(copy.deepcopy(goal_maze))
-#     print(maze_history.index(first_maze))
-#     print(maze_history.index(goal_maze))
-#     print(goal_maze in maze_history)
 
 def find_zero(arr):
     for i,row in enumerate(arr):
@@ -139,7 +137,7 @@ def find_item(arr, item):
 def make_goal_maze(maze):
     global goal_maze
     n = len(maze)
-    goal_maze = copy.deepcopy(maze)
+    goal_maze = unfreeze(maze)
     count = 0
     for i,row in enumerate(goal_maze):
         for j,elem in enumerate(row):

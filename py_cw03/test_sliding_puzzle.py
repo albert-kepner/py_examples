@@ -20,7 +20,7 @@ puzzle3 = [
 ]
 
 def test_slide():
-    answer = slide_puzzle(puzzle3)
+    answer = slide_puzzle(puzzle2)
     print(f'Answer: {answer}')
     # slide_puzzle(puzzle2)
     # slide_puzzle(puzzle3)
