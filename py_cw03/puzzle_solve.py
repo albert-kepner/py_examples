@@ -1,5 +1,17 @@
 import copy
 import math
+from enum import Enum
+
+class TaskState(Enum):
+    BasicRow = 1
+    LastOfRow = 2
+    LastButOneRow = 3
+    PlaceLastTwoRow = 4
+    FinishLastTwoRow = 5
+    ColumnPlaceLastRowItem = 6
+    ColumnLastButOneRowItem = 7
+    PlaceLastTwoInColumn = 8
+
 
 puzzle: list[list[int]] = []
 goal_puzzle: list[list[int]] = []
@@ -13,6 +25,8 @@ goal_location: tuple[int, int] = (0, 0)
 move_number_history: list[int] = []
 steps_toward_goal: int = 0
 debug_path: bool = False
+
+task_state: TaskState = TaskState.BasicRow
 
 def slide_puzzle(ar: list[list[int]]) -> list[int]:
     global freeze_array
@@ -32,6 +46,8 @@ def slide_puzzle(ar: list[list[int]]) -> list[int]:
     last_number_placed = 0
     count_numbers_placed = 0
     while update_goal():
+        print(f'{task_state=}')
+        print_puzzle(puzzle,label='After update_goal()')
         steps_toward_goal = 0
         seek_goal()
     print('update_goal() returns False')
@@ -42,25 +58,44 @@ def slide_puzzle(ar: list[list[int]]) -> list[int]:
     return move_number_history
 
 def update_goal() -> bool:
+    print(f'In update_goal() {last_number_placed=} {count_numbers_placed=}')
     global goal_location
     global goal_number
+    global task_state
     if completed_rows <= square_size - 3:
+        if task_state == TaskState.LastButOneRow:
+            print('DDDD')
+            task_state = TaskState.PlaceLastTwoRow
+            finish_row(row_number=completed_rows)
+            if completed_rows <= square_size - 3:
+                print('EEEE')
+                task_state = TaskState.FinishLastTwoRow
+                return update_goal()
+            else:
+                print('FFFF')
+                task_state = TaskState.ColumnPlaceLastRowItem
+                return False
         if count_numbers_placed % square_size <= square_size - 3:
+            print('AAAA')
             goal_number = count_numbers_placed + 1
             goal_location = find_item(goal_puzzle, goal_number)
+            print(f'in update_goal() {goal_number=} {goal_location=}')
+            task_state = TaskState.BasicRow
             return True
         if last_number_placed % square_size == square_size - 2:
+            print('BBBB')
             goal_number = last_number_placed + 2
             goal_location = find_item(goal_puzzle, goal_number-1)
+            task_state = TaskState.LastOfRow
             return True
         if last_number_placed % square_size == 0:
+            print('CCCC')
             goal_number = last_number_placed - 1
             goal_location = find_item(goal_puzzle, goal_number)
             goal_location = tuple_add(goal_location, (1,0))
+            task_state = TaskState.LastButOneRow
             return True
-        if last_number_placed % square_size == square_size - 1:
-            finish_row(row_number=completed_rows)
-            return completed_rows <= square_size - 3
+
     return False
 
 def finish_row(row_number):
@@ -68,10 +103,11 @@ def finish_row(row_number):
     global puzzle
     global freeze_array
     global completed_rows
+    global last_number_placed
     zero_location = find_item(puzzle, 0)
     zero_targets = [(row_number,square_size-1)]
-    print('in finish_row()')
-    print_puzzle(puzzle)
+
+    print_puzzle(puzzle,label='in finish_row()')
     zero_best_path = find_zero_path(zero_location, zero_targets, goal_location)
     print(f'{zero_best_path=}')
     move_zero_along_path(zero_best_path)
@@ -81,6 +117,7 @@ def finish_row(row_number):
     freeze_array[target[0]][target[1]] = True
     freeze_array[row_number+1][square_size-2] = False
     completed_rows += 1
+    print_puzzle(puzzle, label='AT END in finish_row()')
 
 def find_item(arr, item):
     for i,row in enumerate(arr):
@@ -108,12 +145,13 @@ def seek_goal():
     global freeze_array
     global steps_toward_goal
     goal_number_location = find_item(puzzle, goal_number)
-    print_puzzle(puzzle)
     while goal_number_location != goal_location:
         goal_number_location = step_toward_goal(goal_number_location)
         steps_toward_goal += 1
     last_number_placed = goal_number
+
     count_numbers_placed += 1
+    print(f'Seek Goal Setting {last_number_placed=} {count_numbers_placed=}')
     freeze_array[goal_location[0]][goal_location[1]] = True
 
 def step_toward_goal(goal_number_location: tuple[int, int]) -> tuple[int, int]:
@@ -122,12 +160,12 @@ def step_toward_goal(goal_number_location: tuple[int, int]) -> tuple[int, int]:
     global debug_path
     direction = goal_direction(goal_number_location)
     zero_location = find_item(puzzle, 0)
-    print(f'{zero_location=}')
+    # print(f'{zero_location=}')
     zero_targets = [tuple_add((direction[0],0), goal_number_location), tuple_add((0, direction[1]), goal_number_location)]
-    print(f'{zero_targets=}')
-    print(f'{last_number_placed=}')
-    print(f'{goal_number=}')
-    print(f'{steps_toward_goal=}')
+    # print(f'{zero_targets=}')
+    # print(f'{last_number_placed=}')
+    # print(f'{goal_number=}')
+    # print(f'{steps_toward_goal=}')
     zero_best_path = find_zero_path(zero_location, zero_targets, goal_number_location)
     print('zero_best_path: ', zero_best_path)
     move_zero_along_path(zero_best_path)
@@ -142,8 +180,8 @@ def swap_numbers(zero_location: tuple[int,int], number_to_move: tuple[int, int])
     move_number_history.append(number_at)
     puzzle[number_to_move[0]][number_to_move[1]] = 0
     puzzle[zero_location[0]][zero_location[1]] = number_at
-    print(f'{number_at=}')
-    print_puzzle(puzzle)
+    # print(f'{number_at=}')
+    # print_puzzle(puzzle)
 
 def  move_zero_along_path(zero_best_path: list[tuple[int, int]]) -> None:
     global puzzle
@@ -232,7 +270,9 @@ def retrace_path(grid: list[list[int]], next_location: tuple[int, int]) -> list[
                     return back_path
                 break
 
-def print_puzzle(maze):
+def print_puzzle(maze, label=None):
+    if label:
+        print(f'{label=}')
     print('[')
     for row in maze:
         print(row)
