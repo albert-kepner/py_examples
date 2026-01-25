@@ -1,4 +1,4 @@
-from sliding_puzzle import slide_puzzle
+from puzzle_solve import slide_puzzle
 
 puzzle1 = [
     [4, 1, 3],
