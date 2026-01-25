@@ -145,7 +145,7 @@ def finish_column():
     swap_numbers(target, target_last_row)
     swap_numbers(target_last_row, target_previous_row)
     freeze_array[target[0]][target[1]] = True
-    freeze_array[target_previous_row[0]][target_previous_row[1]] = True
+    freeze_array[target_previous_row[0]][target_previous_row[1]] = False
     completed_columns += 1
     print_puzzle(puzzle, label='AT END in finish_column()')
 
