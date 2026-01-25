@@ -11,6 +11,7 @@ class TaskState(Enum):
     ColumnPlaceLastRowItem = 6
     ColumnLastButOneRowItem = 7
     PlaceLastTwoInColumn = 8
+    FinishLastCorner = 9
 
 
 puzzle: list[list[int]] = []
@@ -24,6 +25,7 @@ goal_number: int = 0
 goal_location: tuple[int, int] = (0, 0)
 move_number_history: list[int] = []
 steps_toward_goal: int = 0
+completed_columns: int = 0
 debug_path: bool = False
 
 task_state: TaskState = TaskState.BasicRow
@@ -38,6 +40,7 @@ def slide_puzzle(ar: list[list[int]]) -> list[int]:
     global goal_location
     global puzzle
     global steps_toward_goal
+    global completed_columns
     puzzle = copy.deepcopy(ar)
     make_goal_puzzle(puzzle)
     square_size = len(ar[0])
@@ -45,6 +48,7 @@ def slide_puzzle(ar: list[list[int]]) -> list[int]:
     completed_rows = 0
     last_number_placed = 0
     count_numbers_placed = 0
+    completed_columns = 0
     while update_goal():
         print(f'{task_state=}')
         print_puzzle(puzzle,label='After update_goal()')
@@ -55,6 +59,7 @@ def slide_puzzle(ar: list[list[int]]) -> list[int]:
     print(f'{last_number_placed=}')
     print(f'freeze_array:')
     print_puzzle(freeze_array)
+    print(f'{completed_rows=}')
     return move_number_history
 
 def update_goal() -> bool:
@@ -74,7 +79,7 @@ def update_goal() -> bool:
             else:
                 print('FFFF')
                 task_state = TaskState.ColumnPlaceLastRowItem
-                return False
+                return update_goal()
         if count_numbers_placed % square_size <= square_size - 3:
             print('AAAA')
             goal_number = count_numbers_placed + 1
@@ -95,8 +100,54 @@ def update_goal() -> bool:
             goal_location = tuple_add(goal_location, (1,0))
             task_state = TaskState.LastButOneRow
             return True
+    else:
+        if completed_columns <= square_size - 3:
+            if task_state == TaskState.ColumnPlaceLastRowItem:
+                print('GGGG')
+                goal_number = 1 + completed_columns + (square_size - 1) * square_size
+                goal_number_at = 1 + completed_columns + (square_size - 2) * square_size
+                goal_location = find_item(goal_puzzle, goal_number_at)
+                task_state = TaskState.ColumnLastButOneRowItem
+                return True
+            if task_state == TaskState.ColumnLastButOneRowItem:
+                print('HHHH')
+                goal_number = 1 + completed_columns + (square_size - 2) * square_size
+                goal_number_at = 2 + completed_columns + (square_size - 2) * square_size
+                goal_location = find_item(goal_puzzle, goal_number_at)
+                task_state = TaskState.PlaceLastTwoInColumn
+                return True
+            if task_state == TaskState.PlaceLastTwoInColumn:
+                print('IIII')
+                finish_column()
+                if completed_columns <= square_size - 3:
+                    print('JJJJ')
+                    task_state = TaskState.ColumnPlaceLastRowItem
+                    return update_goal()
+                else:
+                    print('KKKK')
+                    task_state = TaskState.FinishLastCorner
+                    return False
 
     return False
+
+def finish_column():
+    print('in finish_column() ***************************************************************** *********')
+    global completed_columns
+    zero_location = find_item(puzzle, 0)
+    zero_targets = [(square_size - 1, completed_columns)]
+    print_puzzle(puzzle, label='in finish_column()')
+    zero_best_path = find_zero_path(zero_location, zero_targets, goal_location)
+    print(f'{zero_best_path=}')
+    move_zero_along_path(zero_best_path)
+    target  = zero_best_path[-1]
+    target_last_row = tuple_add(target, (-1,0))
+    target_previous_row = tuple_add(target, (-1,1))
+    swap_numbers(target, target_last_row)
+    swap_numbers(target_last_row, target_previous_row)
+    freeze_array[target[0]][target[1]] = True
+    freeze_array[target_previous_row[0]][target_previous_row[1]] = True
+    completed_columns += 1
+    print_puzzle(puzzle, label='AT END in finish_column()')
 
 def finish_row(row_number):
     print('in finish_row() ***************************************************************** *********')
@@ -106,7 +157,6 @@ def finish_row(row_number):
     global last_number_placed
     zero_location = find_item(puzzle, 0)
     zero_targets = [(row_number,square_size-1)]
-
     print_puzzle(puzzle,label='in finish_row()')
     zero_best_path = find_zero_path(zero_location, zero_targets, goal_location)
     print(f'{zero_best_path=}')
