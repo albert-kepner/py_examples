@@ -12,6 +12,10 @@ class TaskState(Enum):
     ColumnLastButOneRowItem = 7
     PlaceLastTwoInColumn = 8
     FinishLastCorner = 9
+    ColumnLastButOneRowItemVer2 = 10
+    ColumnPlaceLastRowItemVer2 = 11
+    PlaceLastTwoInColumnVer2 = 12
+    FinishLastCornerVer2 = 13
 
 
 puzzle: list[list[int]] = []
@@ -55,18 +59,18 @@ def slide_puzzle(ar: list[list[int]]) -> list[int]:
         steps_toward_goal = 0
         seek_goal()
     print('update_goal() returns False')
-    print_puzzle(puzzle)
+    print_puzzle(puzzle,label='THE END')
     print(f'{last_number_placed=}')
-    print(f'freeze_array:')
-    print_puzzle(freeze_array)
+    # print(f'freeze_array:')
+    # print_puzzle(freeze_array)
     print(f'{completed_rows=}')
     return move_number_history
 
 def update_goal() -> bool:
-    print(f'In update_goal() {last_number_placed=} {count_numbers_placed=}')
     global goal_location
     global goal_number
     global task_state
+    print(f'In update_goal() {last_number_placed=} {count_numbers_placed=} {task_state=}')
     if completed_rows <= square_size - 3:
         if task_state == TaskState.LastButOneRow:
             print('DDDD')
@@ -126,9 +130,117 @@ def update_goal() -> bool:
                 else:
                     print('KKKK')
                     task_state = TaskState.FinishLastCorner
+                    rotate_last_corner()
                     return False
+                    # if test_ready_for_last_corner():
+                    #     finish_last_corner()
+                    #     return False
+                    # else:
+                    #     print('OOOO')
+                    #     unfreeze_and_redo_last_column()
+                    #     task_state = TaskState.ColumnLastButOneRowItemVer2
+                    #     return update_goal()
+            if task_state == TaskState.ColumnLastButOneRowItemVer2:
+                print('LLLL')
+                ## put the next to last row item in the last row,
+                ## follow up by putting the last row item next to it.
+                goal_number = 1 + completed_columns + (square_size - 2) * square_size
+                goal_number_at = 1 + completed_columns + (square_size - 1) * square_size
+                goal_location = find_item(goal_puzzle, goal_number_at)
+                task_state = TaskState.ColumnPlaceLastRowItemVer2
+                return True
+            if task_state == TaskState.ColumnPlaceLastRowItemVer2:
+                print('MMMM')
+                ## place the last row item in the last row offset right from the next to last row item.
+                goal_number = 1 + completed_columns + (square_size - 1) * square_size
+                goal_number_at = 2 + completed_columns + (square_size - 1) * square_size
+                goal_location = find_item(goal_puzzle, goal_number_at)
+                task_state = TaskState.PlaceLastTwoInColumnVer2
+                return True
+            if task_state == TaskState.PlaceLastTwoInColumnVer2:
+                print('NNNN')
+                finish_column_ver2()
+                task_state = TaskState.FinishLastCorner
+                finish_last_corner()
+                return False
 
     return False
+
+def rotate_last_corner():
+    target_number = (square_size - 1) * square_size - 1
+    target_position = (square_size - 2, square_size - 2)
+    zero_position = (square_size - 1, square_size - 1)
+    positions: list[tuple[int, int]] = [
+        (square_size - 2, square_size - 2),
+        (square_size - 2, square_size - 1),
+        (square_size - 1, square_size - 1),
+        (square_size - 1, square_size - 2),
+    ]
+    ## Locate the zero:
+    zero_location = find_item(puzzle, 0)
+    ## zero_location should start at (square_size - 2, square_size - 2)
+    zero_index = positions.index(zero_location)
+    print(f'in rotate_last_corner() {zero_location=} {zero_index=} (should be zero)')
+    found_positions: bool = False
+    for i in range(16):
+        ## Test if target number and the zero are both in position,
+        ## Rotating the zero clockwise up to 16 times
+        zero_location = find_item(puzzle, 0)
+        target_location = find_item(puzzle, target_number)
+        if zero_location == zero_position and target_location == target_position:
+            found_positions = True
+            break
+        next_index = (zero_index + 1) % 4
+        swap_numbers(positions[zero_index], positions[next_index])
+        zero_index = next_index
+
+    if found_positions:
+        print(f'in rotate_last_corner() SUCCESS')
+    else:
+        print(f'in rotate_last_corner() FAIL')
+    print_puzzle(puzzle, label='Ending rotate_last_corner')
+
+
+
+
+def test_ready_for_last_corner() -> bool:
+    ## The zero will be at location (square_size - 2, square_size - 2)
+
+    ## The item that needs to be here
+    goal_number1 = (square_size - 1) * square_size - 1
+
+    # We are ready to fix the last corner if the goal_number is adjacent to this location
+    if (puzzle[square_size - 1][square_size - 2] == goal_number1
+            or puzzle[square_size - 2][square_size - 1] == goal_number1):
+        print_puzzle(puzzle, label='Yes Ready for last corner')
+        return True
+    else:
+        print_puzzle(puzzle, label='No, Not Ready for last corner')
+        return False
+
+def finish_last_corner():
+    global goal_location
+    zero_location = find_item(puzzle, 0)
+    goal_number_at = (square_size - 1) * square_size - 1
+    print(f'finish_last_corner() {goal_number_at=}')
+    goal_location = find_item(puzzle, goal_number_at)
+    print(f'finish_last_corner() {goal_location=}')
+    swap_numbers(zero_location, goal_location)
+    corner_location = ((square_size - 1) , (square_size - 1))
+    swap_numbers(goal_location, corner_location)
+
+def unfreeze_and_redo_last_column():
+    global task_state
+    global completed_columns
+    global count_numbers_placed
+    completed_columns -= 1
+    count_numbers_placed += 1
+    freeze_array[square_size - 2][completed_columns] = False
+    freeze_array[square_size - 1][completed_columns] = False
+    task_state = TaskState.ColumnLastButOneRowItemVer2
+    print('in unfreeze_and_redo_last_column()')
+    print_puzzle(freeze_array, label = 'in unfreeze_and_redo_last_column()')
+
 
 def finish_column():
     print('in finish_column() ***************************************************************** *********')
@@ -145,9 +257,31 @@ def finish_column():
     swap_numbers(target, target_last_row)
     swap_numbers(target_last_row, target_previous_row)
     freeze_array[target[0]][target[1]] = True
+    freeze_array[target_last_row[0]][target_last_row[1]] = True
     freeze_array[target_previous_row[0]][target_previous_row[1]] = False
     completed_columns += 1
     print_puzzle(puzzle, label='AT END in finish_column()')
+
+def finish_column_ver2():
+    print('in finish_column() ***************************************************************** *********')
+    global completed_columns
+    zero_location = find_item(puzzle, 0)
+    zero_targets = [(square_size - 2, completed_columns)]
+    print_puzzle(puzzle, label='in finish_column_ver2()')
+    zero_best_path = find_zero_path(zero_location, zero_targets, goal_location)
+    print(f'{zero_best_path=}')
+    move_zero_along_path(zero_best_path)
+    target  = zero_best_path[-1]
+    target_previous_row = tuple_add(target, (1, 0))
+    target_last_row = tuple_add(target_previous_row, (0, 1))
+
+    swap_numbers(target, target_previous_row)
+    swap_numbers(target_previous_row, target_last_row )
+    freeze_array[target[0]][target[1]] = True
+    freeze_array[target_previous_row[0]][target_previous_row[1]] = True
+    freeze_array[target_last_row[0]][target_last_row[1]] = False
+    completed_columns += 1
+    print_puzzle(puzzle, label='AT END in finish_column_ver2()')
 
 def finish_row(row_number):
     print('in finish_row() ***************************************************************** *********')
