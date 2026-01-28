@@ -1,5 +1,7 @@
 import copy
 import math
+import sys
+import traceback
 from enum import Enum
 
 
@@ -35,6 +37,7 @@ steps_toward_goal: int = 0
 completed_columns: int = 0
 debug_path: bool = False
 VERBOSE: bool = False
+loop_limit = 8
 
 task_state: TaskState = TaskState.BasicRow
 
@@ -199,6 +202,9 @@ def finish_column():
     if VERBOSE:
         print_puzzle(puzzle, label='in finish_column()')
     zero_best_path = find_zero_path(zero_location, zero_targets, goal_location)
+    if len(zero_best_path) == 0:
+        print_puzzle(puzzle, label='in finish_column() no zero_path_found. Try other plan.')
+        print(f'{zero_location=} {zero_targets=}')
     if VERBOSE:
         print(f'{zero_best_path=}')
     move_zero_along_path(zero_best_path)
@@ -288,6 +294,11 @@ def step_toward_goal(goal_number_location: tuple[int, int]) -> tuple[int, int]:
     zero_targets = [tuple_add((direction[0], 0), goal_number_location),
                     tuple_add((0, direction[1]), goal_number_location)]
     zero_best_path = find_zero_path(zero_location, zero_targets, goal_number_location)
+    if len(zero_best_path) == 0:
+        print_puzzle(puzzle, label='in step_toward_goal() zero_best_path == []')
+        print(f'{zero_location=} {goal_number_location=} {task_state=}')
+        column_alternate_path()
+        return goal_location
     if VERBOSE:
         print('zero_best_path: ', zero_best_path)
     move_zero_along_path(zero_best_path)
@@ -295,6 +306,36 @@ def step_toward_goal(goal_number_location: tuple[int, int]) -> tuple[int, int]:
     swap_numbers(target, goal_number_location)
     goal_number_location = target
     return goal_number_location
+
+
+def column_alternate_path() -> tuple[int, int]:
+    origin = (square_size - 2, completed_columns)
+    the_path_offsets = [
+        (1, 0),
+        (0, 0),
+        (0, 1),
+        (0, 2),
+        (1, 2),
+        (1, 1),
+        (0, 1),
+        (0, 0),
+        (1, 0),
+        (1, 1),
+        (1, 2),
+        (0, 2),
+        (0, 1),
+        (1, 1),
+    ]
+    new_path = [tuple_add(origin, x) for x in the_path_offsets]
+    previous_step = None
+    for ix, step in enumerate(new_path):
+        if ix > 0:
+            swap_numbers(previous_step, step)
+            if VERBOSE:
+                print_puzzle(puzzle, label='column_alternate_path({ix})')
+        previous_step = step
+    print(f'column_alternate_path(returning: {previous_step=})')
+    return previous_step
 
 
 def swap_numbers(zero_location: tuple[int, int], number_to_move: tuple[int, int]) -> None:
@@ -331,12 +372,16 @@ def tuple_add(a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
 
 
 def find_zero_path(zero_location, zero_targets, goal_number_location) -> list[tuple[int, int]]:
+    global loop_limit
     if debug_path:
         print('in find_zero_path puzzle =')
         print_puzzle(puzzle)
         print(f'{zero_location=}')
         print(f'{zero_targets=}')
         print(f'{goal_number_location=}')
+        print(f'{task_state=}')
+        print_puzzle(puzzle, label='puzzle in find_zero_path')
+        print_puzzle(freeze_array, label='freeze array in find_zero_path')
     n = square_size
     grid = [[-1] * n for _ in range(n)]
     grid[zero_location[0]][zero_location[1]] = 0
@@ -346,10 +391,14 @@ def find_zero_path(zero_location, zero_targets, goal_number_location) -> list[tu
     if zero_location in zero_targets:
         if VERBOSE:
             print('zero trivially at target location')
+            loop_limit -= 1
+            if loop_limit <= 0:
+                traceback.print_stack()
+                sys.exit(1)
         return [zero_location]
     while True:
         if not stack:
-            raise Exception('No zero path found')
+            return []  ## return an empty path
         next_location = stack.pop(0)
         adjacents = find_adjacents(next_location)
         for nxt in adjacents:

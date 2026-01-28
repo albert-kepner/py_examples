@@ -29,6 +29,13 @@ puzzle3 = [
     [21, 22, 23, 19, 24]
 ]
 
+puzzle_bad = [
+    [0, 1, 8],
+    [7, 5, 3],
+    [4, 2, 6],
+]
+
+
 def test_slide():
     answer = slide_puzzle(puzzle1)
     print(f'Answer: {answer}')
@@ -39,4 +46,8 @@ def test_slide():
     answer = slide_puzzle(puzzle2a)
     print(f'Answer: {answer}')
     answer = slide_puzzle(puzzle2b)
+    print(f'Answer: {answer}')
+
+def test_bad():
+    answer = slide_puzzle(puzzle_bad)
     print(f'Answer: {answer}')
