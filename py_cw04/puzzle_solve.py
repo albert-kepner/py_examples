@@ -76,6 +76,8 @@ def slide_puzzle(ar: list[list[int]]) -> list[int]:
     print_puzzle(puzzle, label='THE END')
     print(f'{last_number_placed=}')
     print(f'{completed_rows=}')
+    if puzzle != goal_puzzle:
+        return None
     return move_number_history
 
 
@@ -296,8 +298,20 @@ def step_toward_goal(goal_number_location: tuple[int, int]) -> tuple[int, int]:
     zero_best_path = find_zero_path(zero_location, zero_targets, goal_number_location)
     if len(zero_best_path) == 0:
         print_puzzle(puzzle, label='in step_toward_goal() zero_best_path == []')
-        print(f'{zero_location=} {goal_number_location=} {task_state=}')
-        column_alternate_path()
+        if completed_rows == square_size - 2:
+            if column_test_if_larger_number_move_to_corner():
+                print(f'{completed_rows=} calling column_alternate_path2()')
+                column_alternate_path2()
+            else:
+                print(f'{completed_rows=} calling column_alternate_path()')
+                column_alternate_path()
+        else:
+            if row_test_if_larger_number_move_to_corner():
+                print(f'{completed_rows=} calling row_alternate_path2()')
+                row_alternate_path2()
+            else:
+                print(f'{completed_rows=} calling row_alternate_path()')
+                row_alternate_path()
         return goal_location
     if VERBOSE:
         print('zero_best_path: ', zero_best_path)
@@ -307,8 +321,18 @@ def step_toward_goal(goal_number_location: tuple[int, int]) -> tuple[int, int]:
     goal_number_location = target
     return goal_number_location
 
+def row_test_if_larger_number_move_to_corner() -> bool:
+    origin = (completed_rows + 1, square_size - 1)
+    corner = (completed_rows + 0, square_size - 2)
+    return puzzle[corner[0]][corner[1]] > puzzle[origin[0]][origin[1]]
+
+def column_test_if_larger_number_move_to_corner() -> bool:
+    origin = (square_size - 2, completed_columns)
+    corner = (square_size - 1, completed_columns + 1)
+    return puzzle[corner[0]][corner[1]] > puzzle[origin[0]][origin[1]]
 
 def column_alternate_path() -> tuple[int, int]:
+    ## This version for smaller number in corner after 1st step
     origin = (square_size - 2, completed_columns)
     the_path_offsets = [
         (1, 0),
@@ -332,9 +356,111 @@ def column_alternate_path() -> tuple[int, int]:
         if ix > 0:
             swap_numbers(previous_step, step)
             if VERBOSE:
-                print_puzzle(puzzle, label='column_alternate_path({ix})')
+                print_puzzle(puzzle, label=f'column_alternate_path({ix})')
         previous_step = step
-    print(f'column_alternate_path(returning: {previous_step=})')
+    print_puzzle(puzzle, label=f'column_alternate_path({ix})')
+    return previous_step
+
+
+def row_alternate_path2() -> tuple[int, int]:
+    ## This version for larger number in corner after 1st step
+    ## compared to number at origin.
+    origin = (completed_rows + 1, square_size - 1)
+    the_path_offsets = [
+        (-1, 0), # 0
+        (-1, -1), # 1
+        (0, -1), #2
+        (0, 0), #3
+        (1, 0), #4
+        (1, -1), #5
+        (0, -1), #6
+        (-1, -1), #7
+        (-1, 0), #8
+        (0, 0), #9
+        (0, -1), #10
+        (1, -1), #11
+        (1, 0), #12
+        (0, 0), #13
+        (0, -1), #14
+        (0, 0), #15
+        (-1, 0), #16 Ends with zero in corner!!
+    ]
+    new_path = [tuple_add(origin, x) for x in the_path_offsets]
+    previous_step = None
+    for ix, step in enumerate(new_path):
+        if ix > 0:
+            swap_numbers(previous_step, step)
+            if VERBOSE:
+                print_puzzle(puzzle, label=f'row_alternate_path2({ix})')
+        previous_step = step
+    print_puzzle(puzzle, label=f'row_alternate_path2({ix})')
+    return previous_step
+
+def column_alternate_path2() -> tuple[int, int]:
+    ## This version for larger number in corner after 1st step
+    ## compared to number at origin.
+    origin = (completed_rows + 1, square_size - 1)
+    the_path_offsets = [
+        (-1, 0), # 0
+        (-1, -1), # 1
+        (0, -1), #2
+        (0, 0), #3
+        (1, 0), #4
+        (1, -1), #5
+        (0, -1), #6
+        (-1, -1), #7
+        (-1, 0), #8
+        (0, 0), #9
+        (0, -1), #10
+        (1, -1), #11
+        (1, 0), #12
+        (0, 0), #13
+        (0, -1), #14
+        (0, 0), #15
+        (-1, 0), #16 Ends with zero in corner!!
+    ]
+    the_path_offsets_dual = [(c, -r) for r, c in the_path_offsets]
+    new_path = [tuple_add(origin, x) for x in the_path_offsets_dual]
+    previous_step = None
+    for ix, step in enumerate(new_path):
+        if ix > 0:
+            swap_numbers(previous_step, step)
+            if VERBOSE:
+                print_puzzle(puzzle, label=f'column_alternate_path2({ix})')
+        previous_step = step
+    print_puzzle(puzzle, label=f'column_alternate_path2({ix})')
+    return previous_step
+
+def row_alternate_path() -> tuple[int, int]:
+    ## This version for smaller number in corner after 1st step
+    origin = (completed_rows + 1, square_size - 1)
+    print(f'{origin=}')
+    the_path_offsets = [
+        (1, 0),
+        (0, 0),
+        (0, 1),
+        (0, 2),
+        (1, 2),
+        (1, 1),
+        (0, 1),
+        (0, 0),
+        (1, 0),
+        (1, 1),
+        (1, 2),
+        (0, 2),
+        (0, 1),
+        (1, 1),
+    ]
+    the_path_offsets_dual = [(c, -r) for r,c in the_path_offsets]
+    new_path = [tuple_add(origin, x) for x in the_path_offsets_dual]
+    previous_step = None
+    for ix, step in enumerate(new_path):
+        if ix > 0:
+            swap_numbers(previous_step, step)
+            if VERBOSE:
+                print_puzzle(puzzle, label=f'row_alternate_path({ix})')
+        previous_step = step
+    print_puzzle(puzzle, label=f'row_alternate_path({ix})')
     return previous_step
 
 

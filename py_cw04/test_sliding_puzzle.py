@@ -35,8 +35,29 @@ puzzle_bad = [
     [4, 2, 6],
 ]
 
+puzzle_bad2 = [
+    [3, 9, 11, 7],
+    [1, 12, 13, 4],
+    [8, 2, 14, 0],
+    [6, 10, 15, 5],
+]
 
-def test_slide():
+puzzle_good2 = [
+    [3, 9, 11, 7],
+    [1, 15, 13, 4],
+    [8, 2, 14, 0],
+    [6, 10, 12, 5],
+]
+
+puzzle_x3 = [
+    [4, 9, 11, 7],
+    [1, 15, 13, 3],
+    [8, 2, 14, 0],
+    [6, 10, 12, 5],
+]
+
+
+def no_test_slide():
     answer = slide_puzzle(puzzle1)
     print(f'Answer: {answer}')
     answer = slide_puzzle(puzzle2)
@@ -48,6 +69,15 @@ def test_slide():
     answer = slide_puzzle(puzzle2b)
     print(f'Answer: {answer}')
 
+
 def test_bad():
     answer = slide_puzzle(puzzle_bad)
+    print(f'Answer: {answer}')
+
+def no_test_bad2():
+    answer = slide_puzzle(puzzle_bad2)
+    print(f'Answer: {answer}')
+
+def test_x3():
+    answer = slide_puzzle(puzzle_x3)
     print(f'Answer: {answer}')
