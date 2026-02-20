@@ -66,6 +66,13 @@ puzzle_x3 = [
     [6, 10, 15, 5],
 ]
 
+puzzle3 = [
+        [ 3, 7,14,15,10],
+        [ 1, 0, 5, 9, 4],
+        [16, 2,11,12, 8],
+        [17, 6,13,18,20],
+        [21,22,23,19,24]
+    ]
 
 def no_test_slide():
     answer = slide_puzzle(puzzle1)
@@ -90,4 +97,8 @@ def no_test_bad2():
 
 def test_x3():
     answer = slide_puzzle(puzzle_x3)
+    print(f'Answer: {answer}')
+
+def test_puzzle3():
+    answer = slide_puzzle(puzzle3)
     print(f'Answer: {answer}')
