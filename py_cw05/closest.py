@@ -54,15 +54,14 @@ def partition_n_by_n(points: list[tuple[int, int]]):
     min_x, min_y, max_x, max_y = xy_range(points)
     ## Need to set up an N by N grid.
     N = PARTITION_N
-    grid = []
-    for i in range(N):
-        row = []
-        grid.append(row)
-        for j in range(N):
-            row.append([])
+    grid = create_partitions(N)
+    grid_plus = create_partitions(N+1)
+
     for p in points:
         i, j = partition_index(p, min_x, min_y, max_x, max_y)
+        i2, j2 = partition_index_plus(p, min_x, min_y, max_x, max_y)
         grid[i][j].append(p)
+        grid_plus[i2][j2].append(p)
     best_pair = []
     min_dsq = float('inf')
     for i in range(N):
@@ -78,10 +77,30 @@ def partition_n_by_n(points: list[tuple[int, int]]):
                 if p1 and dsq < min_dsq:
                     best_pair = [p1, p2]
                     min_dsq = dsq
+    for i in range(N+1):
+        for j in range(N+1):
+            g = grid_plus[i][j]
+            if len(g) == 2:
+                dsq = distance_squared(g[0], g[1])
+                if dsq < min_dsq:
+                    best_pair = [g[0], g[1]]
+                    min_dsq = dsq
+            elif len(g) >= 3:
+                p1, p2, dsq = partition_n_by_n(g)
+                if p1 and dsq < min_dsq:
+                    best_pair = [p1, p2]
+                    min_dsq = dsq
     if best_pair:
         return best_pair[0], best_pair[1], min_dsq
     else:
         return None, None, min_dsq
+
+def create_partitions(N: int):
+    grid = []
+    for i in range(N):
+        row = [[] for _ in range(N)]
+        grid.append(row)
+    return grid
 
 
 
@@ -92,4 +111,13 @@ def partition_index(p, min_x, min_y, max_x, max_y):
     j = math.floor((p[1]-min_y)/(max_y-min_y) * PARTITION_N)
     if j == PARTITION_N:
         j = PARTITION_N - 1
+    return i, j
+
+def partition_index_plus(p, min_x, min_y, max_x, max_y):
+    x_width = max_x - min_x
+    y_width = max_y - min_y
+    x_width_plus = x_width * (PARTITION_N + 1)/PARTITION_N
+    y_width_plus = y_width * (PARTITION_N + 1)/PARTITION_N
+    i = math.floor((p[0] + x_width/(2 * PARTITION_N) - min_x)/x_width_plus * (PARTITION_N + 1))
+    j = math.floor((p[1] + y_width/(2 * PARTITION_N) - min_y)/y_width_plus * (PARTITION_N + 1))
     return i, j
