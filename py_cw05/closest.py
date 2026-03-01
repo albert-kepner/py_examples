@@ -1,7 +1,10 @@
 import math
 
-MAX_LEN_RECURSE = 8
-PARTITION_N = 4
+
+# MAX_LEN_RECURSE = 7 solves 75 to 78 (success)
+# PARTITION_N = 5
+MAX_LEN_RECURSE = 7
+PARTITION_N = 5
 
 def closest_pair(points):
     print(f'{len(points)=}')
