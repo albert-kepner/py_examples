@@ -1,12 +1,16 @@
 import math
 
 MAX_LEN_RECURSE = 8
-PARTITION_N = 8
+PARTITION_N = 4
 
 def closest_pair(points):
     print(f'{len(points)=}')
 
     p1, p2, _ = partition_n_by_n(list(points))
+
+    if not p1 and len(points) == 26:
+        print(f'{points=}')
+
 
     return [p1, p2]
 
@@ -71,14 +75,21 @@ def partition_n_by_n(points: list[tuple[int, int]]):
                     min_dsq = dsq
             elif len(g) >= 3:
                 p1, p2, dsq = partition_n_by_n(g)
-                if dsq < min_dsq:
+                if p1 and dsq < min_dsq:
                     best_pair = [p1, p2]
                     min_dsq = dsq
-    return best_pair[0], best_pair[1], min_dsq
+    if best_pair:
+        return best_pair[0], best_pair[1], min_dsq
+    else:
+        return None, None, min_dsq
 
 
 
 def partition_index(p, min_x, min_y, max_x, max_y):
     i = math.floor((p[0]-min_x)/(max_x-min_x) * PARTITION_N)
+    if i == PARTITION_N:
+        i = PARTITION_N - 1
     j = math.floor((p[1]-min_y)/(max_y-min_y) * PARTITION_N)
+    if j == PARTITION_N:
+        j = PARTITION_N - 1
     return i, j
