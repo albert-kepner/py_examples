@@ -1,13 +1,15 @@
 from fractions import Fraction
+from math import atan2, degrees
 
 Point = tuple[Fraction, Fraction]
+Segment = tuple[Point, Point]
 CoordList = list[Point]
 
 def merge_polygons(poly1: CoordList, poly2: CoordList) -> CoordList:
     return []
 
 ## Given two line segments, each represented by a tuple of two points,
-## determine whether the line segments cross and return True iff they cross.
+## determine whether the line segments might, possibly cross and return True iff their boundary boxes overlap.
 def segments_might_cross(a: tuple[Point, Point], b: tuple[Point, Point]) -> bool:
     a_x1, a_y1 = a[0]
     b_x1, b_y1 = b[0]
@@ -36,7 +38,12 @@ from fractions import Fraction
 
 Point = tuple[Fraction, Fraction]
 
-def segment_intersection(p1: Point, p2: Point, p3: Point, p4: Point) -> Point | None:
+def segment_intersection(seg1: Segment, seg2: Segment) -> Point | None:
+    p1, p2 = seg1
+    p3, p4 = seg2
+    return segment_intersection_pts(p1, p2, p3, p4)
+
+def segment_intersection_pts(p1: Point, p2: Point, p3: Point, p4: Point) -> Point | None:
     """
     Exact intersection of segments p1->p2 and p3->p4 using Fraction arithmetic.
 
@@ -69,9 +76,9 @@ def segment_intersection(p1: Point, p2: Point, p3: Point, p4: Point) -> Point | 
     sx, sy = x4 - x3, y4 - y3
 
     # Handle degenerate segments (points)
-    if rx == 0 and ry == 0:
+    if rx == Fraction(0) and ry == Fraction(0):
         return p1 if point_on_segment(p1, p3, p4) else None
-    if sx == 0 and sy == 0:
+    if sx == Fraction(0) and sy == Fraction(0):
         return p3 if point_on_segment(p3, p1, p2) else None
 
     # q - p
@@ -81,9 +88,9 @@ def segment_intersection(p1: Point, p2: Point, p3: Point, p4: Point) -> Point | 
     qpxr = cross(qpx, qpy, rx, ry)
 
     # Parallel lines?
-    if rxs == 0:
+    if rxs == Fraction(0):
         # Collinear?
-        if qpxr == 0:
+        if qpxr == Fraction(0):
             # Project segment2 endpoints onto segment1 and check interval overlap
             rr = dot(rx, ry, rx, ry)  # > 0 because not degenerate here
             t0 = dot(x3 - x1, y3 - y1, rx, ry) / rr
@@ -107,3 +114,36 @@ def segment_intersection(p1: Point, p2: Point, p3: Point, p4: Point) -> Point | 
         return (x1 + t * rx, y1 + t * ry)
 
     return None
+
+
+
+def signed_angle_ab_to_ac(a: Point, b: Point, c: Point) -> float:
+    """
+    Signed angle in degrees from segment ab to segment ac.
+    CCW is positive, CW is negative.
+    Returned range: [-180, 180).
+
+    Points are (Fraction, Fraction).
+    """
+    ax, ay = a
+    bx, by = b
+    cx, cy = c
+
+    # Vectors from a
+    v1x, v1y = bx - ax, by - ay  # ab
+    v2x, v2y = cx - ax, cy - ay  # ac
+
+    if (v1x == 0 and v1y == 0) or (v2x == 0 and v2y == 0):
+        raise ValueError("Angle is undefined when a==b or a==c (zero-length segment).")
+
+    # Exact rationals
+    dot: Fraction = v1x * v2x + v1y * v2y
+    cross: Fraction = v1x * v2y - v1y * v2x
+
+    # atan2 needs floats; convert at the last moment
+    ang = degrees(atan2(float(cross), float(dot)))  # (-180, 180]
+
+    # Normalize boundary to keep [-180, 180)
+    if ang == 180.0:
+        ang = -180.0
+    return ang
