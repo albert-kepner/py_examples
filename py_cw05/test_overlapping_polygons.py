@@ -1,17 +1,8 @@
-from overlapping_polygons import (merge_polygons,
-                                  segment_intersection,
-                                  segment_intersection_pts,
-                                  segments_might_cross,
-                                  Point,
-                                  Segment,
-                                  CoordList,
-                                  signed_angle_ab_to_ac,
-                                  )
+from overlapping_polygons import *
 
 from fractions import Fraction
 
-f = Fraction
-s = Segment
+
 
 def test_01():
     p1 = (f(0,1), f(0,1))
@@ -57,3 +48,63 @@ def test_03():
     print(f'does_intersect: {does_intersect}')
     might_cross = segments_might_cross(sa, sb)
     print(f'might_cross: {might_cross}')
+
+def test_04():
+    p1 = pt(0, 0)
+    p2 = pt(10, 0)
+    print('')
+    for p3 in [pt(0,2), pt(0,10), pt(5,10), pt(10, 10), pt(20,10), pt(20, 1), pt(20, 0), pt(20, -10)]:
+        # print(f'{type(p1)=} {type(p2)=} {type(p3)=}')
+        # print(f'{p1}, {p2}, {p3}')
+        angle = signed_angle_ab_to_bc(p1, p2, p3)
+        print(f'angle: {angle}')
+
+def test_05():
+    p1 = pt(0, 0)
+    p2 = pt(10, 0)
+    print('')
+    for p3 in [pt(0,2), pt(0,10), pt(5,10), pt(10, 10), pt(20,10), pt(20, 1), pt(20, 0)]:
+        # print(f'{type(p1)=} {type(p2)=} {type(p3)=}')
+        # print(f'{p1}, {p2}, {p3}')
+        angle = signed_angle_ab_to_ac(p2, p1, p3)
+        print(f'angle: {angle}')
+
+def test_06():
+    p1 = pt(0, 0)
+    p2 = pt(10, 0)
+    print('')
+    for p3 in [pt(0,2), pt(0,10), pt(5,10), pt(10, 10), pt(20,10), pt(20, 1), pt(20, 0), pt(20, -10)]:
+        p3 = (p3[0], -p3[1])
+        angle = signed_angle_ab_to_bc(p1, p2, p3)
+        print(f'angle: {angle}')
+
+def test_07():
+    p1 = pt(0, 0)
+    p2 = pt(10, 0)
+    p3 = pt(5, 10)
+    p4 = pt(0,0)
+    poly1: CoordList = [p1, p2, p3, p4]
+    cw = is_clockwise(poly1)
+    print(f'cw: {cw}')
+    poly1.reverse()
+    cw = is_clockwise(poly1)
+    print(f'cw: {cw}')
+
+def test_08():
+    poly1 = [pt(0,5), pt(10,0), pt(10,10), pt(0,5)]
+    poly2 = [pt(5,0),pt(5,10), pt(15, 5), pt(5, 0)]
+    int1 = find_intersections(poly1, poly2)
+    print_intersections(int1, 'test_08')
+
+def test_09():
+    poly1 = [pt(0,5), pt(10,0), pt(10,10), pt(0,5)]
+    poly2 = [pt(5,0),pt(5,10), pt(15, 5), pt(5, 0)]
+    int1 = find_intersections(poly1, poly2)
+    insert_crossing_points(poly1, poly2, int1)
+    print('')
+    print(f'{len(poly1)=} {len(poly2)=}')
+    # print(f'{poly1=}')
+    # print(f'{poly2=}')
+    print(f'{print_poly(poly1)=}')
+    print(f'{print_poly(poly2)=}')
+

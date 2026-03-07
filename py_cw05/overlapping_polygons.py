@@ -1,12 +1,120 @@
 from fractions import Fraction
 from math import atan2, degrees
+from typing import Any
 
 Point = tuple[Fraction, Fraction]
 Segment = tuple[Point, Point]
 CoordList = list[Point]
 
+f = Fraction
+s = Segment
+
+
+def pt(x: int, y: int) -> Point:
+    return f(x), f(y)
+
+
 def merge_polygons(poly1: CoordList, poly2: CoordList) -> CoordList:
+    if is_clockwise(poly1):
+        poly1.reverse()
+    if is_clockwise(poly2):
+        poly2.reverse()
+
     return []
+
+
+def is_clockwise(poly1: CoordList) -> bool:
+    """Returns True iff the poly1 closed ploygon has coordinates sequenced in a clock-wise rotation, False otherwise."""
+    # The polygon should be closed, which implies the first and last Point should be the same.
+    assert poly1[0] == poly1[-1]
+    pt_minus1 = None
+    pt_minus2 = None
+    total_rotation = 0
+    for ix, pt0 in enumerate(poly1):
+        if pt_minus2:
+            angle = signed_angle_ab_to_bc(pt_minus2, pt_minus1, pt0)
+            total_rotation += angle
+        pt_minus2 = pt_minus1
+        pt_minus1 = pt0
+
+    return total_rotation < 0
+
+
+def find_intersections(poly1: CoordList, poly2: CoordList) -> list[tuple[Segment, Point]]:
+    intersections = []
+    assert poly1[0] == poly1[-1]
+    assert poly2[0] == poly2[-1]
+    pt1_prev = None
+    # poly1b = poly1.copy()
+    # poly1b.append(poly1[1])
+    ## print('')
+    ## print(f'{poly1b=}')
+    # poly2b = poly2.copy()
+    # poly2b.append(poly2[1])
+    ## print(f'{poly2b=}')
+    ## print('')
+    for pt1 in poly1:
+
+        if pt1_prev:
+            a = (pt1_prev, pt1)
+            pt2_prev = None
+            for pt2 in poly2:
+                if pt2_prev:
+                    b = (pt2_prev, pt2)
+                    if segments_might_cross(a, b):
+                        cross_point = segment_intersection(a, b)
+                        if cross_point:
+                            intersections.append((a, cross_point))
+                            ## print_intersections(intersections, f'{pt1=} {pt2=}')
+                            intersections.append((b, cross_point))
+                            ## print_intersections(intersections, f'{pt1=} {pt2=}')
+                            ## print('')
+                pt2_prev = pt2
+
+        pt1_prev = pt1
+    return intersections
+
+
+def insert_crossing_points(poly1: CoordList, poly2: CoordList, cross_pts: list[tuple[Segment, Point]]):
+    print('')
+    for ix, int1 in enumerate(cross_pts):
+        seg, pt1 = int1
+        pt_after = seg[0]
+        print(f'{ix=}: seg: {pseg(seg)} pt1: {pf(pt1)}')
+        if ix % 2 == 0:
+            ## insert into poly1
+            i = poly1.index(pt_after)
+            print(f'{i=} poly1 before: {print_poly(poly1)}')
+            poly1.insert(i+1, pt1)
+            print(f'{i=} poly1 after: {print_poly(poly1)}')
+        else:
+            ## insert into poly2
+            i = poly2.index(pt_after)
+            poly2.insert(i+1, pt1)
+
+
+def print_intersections(intersections: list[tuple[Segment, Point]], label: str = None) -> None:
+    if label:
+        print(label)
+    for ix, int1 in enumerate(intersections):
+        print(f'{ix}: {int1_to_str(int1)}')
+
+
+def pf(p1: Point) -> tuple[float, float]:
+    return float(p1[0]), float(p1[1])
+
+def pseg(seg: Segment) -> tuple[Any, Any]:
+    return pf(seg[0]), pf(seg[1])
+
+def print_poly(poly1: CoordList) -> str:
+    return " ".join([str(pf(x)) for x in poly1])
+
+
+def int1_to_str(int1: tuple[Segment, Point]) -> str:
+    seg1, p1 = int1
+    pa, pb = seg1
+    return f'seg: {(pf(pa), pf(pb))} => {pf(p1)}'
+
 
 ## Given two line segments, each represented by a tuple of two points,
 ## determine whether the line segments might, possibly cross and return True iff their boundary boxes overlap.
@@ -33,15 +141,16 @@ def segments_might_cross(a: tuple[Point, Point], b: tuple[Point, Point]) -> bool
         return False
 
 
-
 from fractions import Fraction
 
 Point = tuple[Fraction, Fraction]
+
 
 def segment_intersection(seg1: Segment, seg2: Segment) -> Point | None:
     p1, p2 = seg1
     p3, p4 = seg2
     return segment_intersection_pts(p1, p2, p3, p4)
+
 
 def segment_intersection_pts(p1: Point, p2: Point, p3: Point, p4: Point) -> Point | None:
     """
@@ -115,6 +224,12 @@ def segment_intersection_pts(p1: Point, p2: Point, p3: Point, p4: Point) -> Poin
 
     return None
 
+
+def signed_angle_ab_to_bc(a: Point, b: Point, c: Point) -> float:
+    angle = 180 + signed_angle_ab_to_ac(b, a, c)
+    if angle > 180:
+        angle = angle - 360
+    return angle
 
 
 def signed_angle_ab_to_ac(a: Point, b: Point, c: Point) -> float:
