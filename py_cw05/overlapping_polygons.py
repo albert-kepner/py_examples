@@ -40,71 +40,53 @@ def is_clockwise(poly1: CoordList) -> bool:
     return total_rotation < 0
 
 
-def find_intersections(poly1: CoordList, poly2: CoordList) -> list[tuple[Segment, Point]]:
-    intersections = []
+def find_intersections(poly1: CoordList, poly2: CoordList) -> tuple[list[list[Point]],list[list[Point]]]:
+    cross_pts1 = [[] for _ in range(len(poly1))]
+    cross_pts2 = [[] for _ in range(len(poly2))]
     assert poly1[0] == poly1[-1]
     assert poly2[0] == poly2[-1]
     pt1_prev = None
-    # poly1b = poly1.copy()
-    # poly1b.append(poly1[1])
-    ## print('')
-    ## print(f'{poly1b=}')
-    # poly2b = poly2.copy()
-    # poly2b.append(poly2[1])
-    ## print(f'{poly2b=}')
-    ## print('')
-    for pt1 in poly1:
+    for i,pt1 in enumerate(poly1):
 
         if pt1_prev:
             a = (pt1_prev, pt1)
+            print(f'{a=}')
             pt2_prev = None
-            for pt2 in poly2:
+            for j,pt2 in enumerate(poly2):
                 if pt2_prev:
                     b = (pt2_prev, pt2)
+                    print(f'{b=}')
                     if segments_might_cross(a, b):
                         cross_point = segment_intersection(a, b)
                         if cross_point:
-                            intersections.append((a, cross_point))
-                            ## print_intersections(intersections, f'{pt1=} {pt2=}')
-                            intersections.append((b, cross_point))
-                            ## print_intersections(intersections, f'{pt1=} {pt2=}')
-                            ## print('')
+                            cross_pts1[i].append(cross_point)
+                            cross_pts2[j].append(cross_point)
                 pt2_prev = pt2
 
         pt1_prev = pt1
-    return intersections
+    return cross_pts1, cross_pts2
 
-
-def insert_crossing_points(poly1: CoordList, poly2: CoordList, cross_pts: list[tuple[Segment, Point]]):
-    print('')
-    for ix, int1 in enumerate(cross_pts):
-        seg, pt1 = int1
-        pt_after = seg[0]
-        print(f'{ix=}: seg: {pseg(seg)} pt1: {pf(pt1)}')
-        if ix % 2 == 0:
-            ## insert into poly1
-            i = poly1.index(pt_after)
-            print(f'{i=} poly1 before: {print_poly(poly1)}')
-            poly1.insert(i+1, pt1)
-            print(f'{i=} poly1 after: {print_poly(poly1)}')
-        else:
-            ## insert into poly2
-            i = poly2.index(pt_after)
-            poly2.insert(i+1, pt1)
-
-
-def print_intersections(intersections: list[tuple[Segment, Point]], label: str = None) -> None:
-    if label:
-        print(label)
-    for ix, int1 in enumerate(intersections):
-        print(f'{ix}: {int1_to_str(int1)}')
+def print_intersections(poly1: CoordList, poly2: CoordList, cross_pts: tuple[list[list[Point]],list[list[Point]]]) -> None:
+    cross1, cross2 = cross_pts
+    print('\npoly1')
+    for i, pt1 in enumerate(poly1):
+        print(f'{i=}, {pf(pt1)}')
+        if cross1[i]:
+            print('        crossings: ', " ".join([str(pf(pt2)) for pt2 in cross1[i]]))
+    print('\npoly2')
+    for i,pt1 in enumerate(poly2):
+        print(f'{i=}, {pf(pt1)}')
+        if cross2[i]:
+            print('        crossings: ', " ".join([str(pf(pt2)) for pt2 in cross2[i]]))
 
 
 def pf(p1: Point) -> tuple[float, float]:
     return float(p1[0]), float(p1[1])
 
+
 def pseg(seg: Segment) -> tuple[Any, Any]:
     return pf(seg[0]), pf(seg[1])
+
 
 def print_poly(poly1: CoordList) -> str:
     return " ".join([str(pf(x)) for x in poly1])

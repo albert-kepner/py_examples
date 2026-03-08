@@ -93,18 +93,12 @@ def test_07():
 def test_08():
     poly1 = [pt(0,5), pt(10,0), pt(10,10), pt(0,5)]
     poly2 = [pt(5,0),pt(5,10), pt(15, 5), pt(5, 0)]
-    int1 = find_intersections(poly1, poly2)
-    print_intersections(int1, 'test_08')
+    intersect = find_intersections(poly1, poly2)
+    print_intersections(poly1, poly2, intersect)
+
 
 def test_09():
     poly1 = [pt(0,5), pt(10,0), pt(10,10), pt(0,5)]
     poly2 = [pt(5,0),pt(5,10), pt(15, 5), pt(5, 0)]
-    int1 = find_intersections(poly1, poly2)
-    insert_crossing_points(poly1, poly2, int1)
-    print('')
-    print(f'{len(poly1)=} {len(poly2)=}')
-    # print(f'{poly1=}')
-    # print(f'{poly2=}')
-    print(f'{print_poly(poly1)=}')
-    print(f'{print_poly(poly2)=}')
+    pass
 
