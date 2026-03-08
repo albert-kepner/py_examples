@@ -100,5 +100,16 @@ def test_08():
 def test_09():
     poly1 = [pt(0,5), pt(10,0), pt(10,10), pt(0,5)]
     poly2 = [pt(5,0),pt(5,10), pt(15, 5), pt(5, 0)]
-    pass
+    intersect = find_intersections(poly1, poly2)
+    graph = build_graph(poly1, poly2, intersect)
+    keys = list(graph.keys())
+    keys = [key for key in keys if key ]
+    print(f'keys: {keys}')
+    keys.sort()
+    for key in keys:
+        print(f'key: {pf(key)}')
+        successors = graph[key]
+        if successors:
+            succ = ', '.join([str(pf(succ)) for succ in successors])
+            print(f'        successors: {succ}')
 

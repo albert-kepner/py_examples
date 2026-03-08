@@ -80,6 +80,53 @@ def print_intersections(poly1: CoordList, poly2: CoordList, cross_pts: tuple[lis
             print('        crossings: ', " ".join([str(pf(pt2)) for pt2 in cross2[i]]))
 
 
+def build_graph(poly1: CoordList,
+                poly2: CoordList,
+                cross_pts: tuple[list[list[Point]],list[list[Point]]],
+                ) -> dict[Point,list[Point]]:
+    graph: dict[Point,list[Point]] = {}
+    cross1, cross2 = cross_pts
+    expand_graph(poly1, cross1, graph)
+    expand_graph(poly2, cross2, graph)
+    return graph
+
+
+def add_crossings(prev_pt: Point,
+                  pt1: Point,
+                  crossings:
+                  list[Point],
+                  graph: dict[Point,list[Point]]) -> None:
+    crossings.append(pt1)
+    if pt1 > prev_pt:
+        # linear points ascending order
+        crossings.sort()
+    else:
+        # linear points descending order
+        crossings.sort(reverse=True)
+    node = graph.get(prev_pt, [])
+    for pt2 in crossings:
+        node.append(pt2)
+        graph[prev_pt] = node
+        node = graph.get(pt2, [])
+        prev_pt = pt2
+
+
+def expand_graph(poly1: CoordList, cross_pts: list[list[Point]], graph: dict[Point,list[Point]]) -> None:
+    print('\npoly?')
+    prev_pt = None
+    for i, pt1 in enumerate(poly1):
+        node = graph.get(prev_pt, [])
+        print(f'{i=}, {pf(pt1)}')
+        if cross_pts[i]:
+            print('        crossings: ', " ".join([str(pf(pt2)) for pt2 in cross_pts[i]]))
+            add_crossings(prev_pt, pt1, cross_pts[i], graph)
+        else:
+            node.append(pt1)
+            graph[prev_pt] = node
+        prev_pt = pt1
+
+
+
 def pf(p1: Point) -> tuple[float, float]:
     return float(p1[0]), float(p1[1])
 
