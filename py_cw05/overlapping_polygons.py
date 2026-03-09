@@ -13,15 +13,43 @@ s = Segment
 def pt(x: int, y: int) -> Point:
     return f(x), f(y)
 
-
 def merge_polygons(poly1: CoordList, poly2: CoordList) -> CoordList:
-    if is_clockwise(poly1):
-        poly1.reverse()
-    if is_clockwise(poly2):
-        poly2.reverse()
+    poly1.append(poly1[0])
+    poly2.append(poly2[0])
+    cycle = merge_polygons_V0(poly1, poly2)
+    return cycle[0:-1]
 
-    return []
+def merge_polygons_V0(poly1: CoordList, poly2: CoordList) -> CoordList:
+    intersect = find_intersections(poly1, poly2)
+    graph = build_graph(poly1, poly2, intersect)
+    cycles: list[CoordList] = find_cycles(graph)
+    if len(cycles) == 1:
+        return cycles[0]
+    max_area = 0.0
+    best_cycle = None
+    for cycle in cycles:
+        area  = area_of_bounding_box(cycle)
+        if area > max_area:
+            best_cycle = cycle
+            max_area = area
 
+    return best_cycle
+
+def area_of_bounding_box(cycle1: CoordList) -> float:
+    pt1 = cycle1[0]
+    pt1_x, pt1_y = pt1
+    min_x: Fraction = pt1_x
+    min_y: Fraction = pt1_y
+    max_x: Fraction = pt1_x
+    max_y: Fraction = pt1_y
+    for pt2 in cycle1:
+        pt2_x, pt2_y = pt2
+        min_x = min(min_x, pt2_x)
+        min_y = min(min_y, pt2_y)
+        max_x = max(max_x, pt2_x)
+        max_y = max(max_y, pt2_y)
+    area = float(Fraction(max_x - min_x) * Fraction(max_y - min_y))
+    return area
 
 def is_clockwise(poly1: CoordList) -> bool:
     """Returns True iff the poly1 closed ploygon has coordinates sequenced in a clock-wise rotation, False otherwise."""
@@ -41,6 +69,14 @@ def is_clockwise(poly1: CoordList) -> bool:
 
 
 def find_intersections(poly1: CoordList, poly2: CoordList) -> tuple[list[list[Point]],list[list[Point]]]:
+    ## We have a convention that both polygons should be traversed in a counter-clockwise
+    ## rotation.
+    if is_clockwise(poly1):
+        poly1.reverse()
+    if is_clockwise(poly2):
+        poly2.reverse()
+
+
     cross_pts1 = [[] for _ in range(len(poly1))]
     cross_pts2 = [[] for _ in range(len(poly2))]
     assert poly1[0] == poly1[-1]
@@ -50,12 +86,10 @@ def find_intersections(poly1: CoordList, poly2: CoordList) -> tuple[list[list[Po
 
         if pt1_prev:
             a = (pt1_prev, pt1)
-            print(f'{a=}')
             pt2_prev = None
             for j,pt2 in enumerate(poly2):
                 if pt2_prev:
                     b = (pt2_prev, pt2)
-                    print(f'{b=}')
                     if segments_might_cross(a, b):
                         cross_point = segment_intersection(a, b)
                         if cross_point:
@@ -112,19 +146,75 @@ def add_crossings(prev_pt: Point,
 
 
 def expand_graph(poly1: CoordList, cross_pts: list[list[Point]], graph: dict[Point,list[Point]]) -> None:
-    print('\npoly?')
     prev_pt = None
     for i, pt1 in enumerate(poly1):
         node = graph.get(prev_pt, [])
-        print(f'{i=}, {pf(pt1)}')
         if cross_pts[i]:
-            print('        crossings: ', " ".join([str(pf(pt2)) for pt2 in cross_pts[i]]))
             add_crossings(prev_pt, pt1, cross_pts[i], graph)
         else:
             node.append(pt1)
             graph[prev_pt] = node
         prev_pt = pt1
 
+def find_cycles(graph: dict[Point,list[Point]],) -> list[CoordList]:
+    """Find cyles in the directed graph by always preferring to turn right.
+    These cycles should correspond either to the common outer perimeter of combined polygons or else
+    to the boundary of internal holes."""
+    ## Keep a set of all the nodes in the graph that have not been explored.
+    keys = list(graph.keys())
+    keys = [key for key in keys if key ]
+    unexplored: set[Point] = set(keys)
+    cycles: list[CoordList] = []
+    prev_pt, pt1 = find_starting_segment(graph, unexplored)
+    ## print(f'find_starting_segment: prev_pt: {prev_pt} pt1: {pt1}')
+    while prev_pt and pt1:
+        ## We have an unexplored segment where prev_pt has only pt1 as the single successor
+        unexplored.remove(pt1)
+        unexplored.remove(prev_pt)
+        current_cycle: CoordList = [prev_pt, pt1]
+        found_in_cycle: set[Point] = set(current_cycle)
+        while True:
+            next_pt = prefer_right_turns(graph, prev_pt, pt1)
+            if next_pt in unexplored:
+                unexplored.remove(next_pt)
+            current_cycle.append(next_pt)
+            ## print(f'current_cycle: {current_cycle}')
+            if next_pt and next_pt in found_in_cycle:
+                ## We have completed a cycle with next_pt.
+                index1 = current_cycle.index(next_pt)
+                if index1 > 0:
+                    current_cycle = current_cycle[index1:]
+                cycles.append(current_cycle)
+                break
+            found_in_cycle.add(next_pt)
+            prev_pt, pt1 = pt1, next_pt
+        prev_pt, pt1 = find_starting_segment(graph, unexplored)
+
+    return cycles
+
+def prefer_right_turns(graph: dict[Point,list[Point]], prev_pt: Point, pt1: Point) -> Point:
+    """When there is a choice of successor points, prefer rightmost turn.
+    Because counterclockwise is defined as positive, the rightmost turn will be the smallest angle."""
+    node = graph.get(pt1, [])
+    if len(node) == 1:
+        return node[0]
+    min_angle = 360
+    best_pt = None
+    for pt2 in graph[pt1]:
+        angle = signed_angle_ab_to_bc(prev_pt, pt1, pt2)
+        if angle < min_angle:
+            min_angle = angle
+            best_pt = pt2
+    return best_pt
+
+def find_starting_segment(graph: dict[Point,list[Point]], unexplored: set[Point]) -> tuple[Point , Point]:
+    for prev_pt in unexplored:
+        node = graph.get(prev_pt, [])
+        if len(node) == 1:
+            pt1 = node[0]
+            if pt1 in unexplored:
+                return prev_pt, node[0]
+    return None, None
 
 
 def pf(p1: Point) -> tuple[float, float]:
