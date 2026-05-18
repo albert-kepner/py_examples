@@ -1,0 +1,86 @@
+Time: 523ms Passed: 0Failed: 6Exit Code: 1
+Test Results:
+Example tests
+Dungeon 1
+Input: {'doors': ['D1', 'D2'],
+ 'goal': 'G',
+ 'rooms': {'A': {'exits': [{'door': None, 'to': 'B'}], 'keys': 0},
+           'B': {'exits': [{'door': None, 'to': 'A'}, {'door': 'D1', 'to': 'C'}], 'keys': 1},
+           'C': {'exits': [{'door': 'D1', 'to': 'B'}, {'door': 'D2', 'to': 'G'}], 'keys': 1},
+           'G': {'exits': [{'door': 'D2', 'to': 'C'}], 'keys': 0}},
+ 'start': 'A'}
+: None should equal (True, True)
+Completed in 0.46ms
+Dungeon 2
+Input: {'doors': ['D1', 'D2'],
+ 'goal': 'G',
+ 'rooms': {'A': {'exits': [{'door': None, 'to': 'B'}], 'keys': 0},
+           'B': {'exits': [{'door': None, 'to': 'A'}, {'door': 'D1', 'to': 'C'}, {'door': 'D2', 'to': 'D'}], 'keys': 1},
+           'C': {'exits': [{'door': 'D1', 'to': 'B'}, {'door': None, 'to': 'G'}], 'keys': 0},
+           'D': {'exits': [{'door': 'D2', 'to': 'B'}], 'keys': 0},
+           'G': {'exits': [], 'keys': 0}},
+ 'start': 'A'}
+: None should equal (True, False)
+Completed in 0.44ms
+Dungeon 3
+Input: {'doors': ['D1', 'D2'],
+ 'goal': 'G',
+ 'rooms': {'A': {'exits': [{'door': None, 'to': 'B'}], 'keys': 0},
+           'B': {'exits': [{'door': None, 'to': 'A'}, {'door': 'D1', 'to': 'C'}], 'keys': 1},
+           'C': {'exits': [{'door': 'D1', 'to': 'B'}, {'door': 'D2', 'to': 'G'}], 'keys': 0},
+           'G': {'exits': [{'door': 'D2', 'to': 'C'}], 'keys': 0}},
+ 'start': 'A'}
+: None should equal (False, False)
+Completed in 0.40ms
+Dungeon 4
+Input: {'doors': ['D1', 'D2', 'D3', 'D4'],
+ 'goal': 'G',
+ 'rooms': {'A': {'exits': [{'door': None, 'to': 'B'}], 'keys': 0},
+           'B': {'exits': [{'door': None, 'to': 'A'}, {'door': 'D1', 'to': 'C'}], 'keys': 2},
+           'C': {'exits': [{'door': 'D1', 'to': 'B'}, {'door': 'D2', 'to': 'F'}, {'door': None, 'to': 'D'}], 'keys': 0},
+           'D': {'exits': [{'door': 'D3', 'to': 'E'}, {'door': 'D4', 'to': 'G'}, {'door': None, 'to': 'C'}], 'keys': 0},
+           'E': {'exits': [{'door': 'D3', 'to': 'D'}], 'keys': 0},
+           'F': {'exits': [{'door': 'D2', 'to': 'C'}], 'keys': 0},
+           'G': {'exits': [], 'keys': 0}},
+ 'start': 'A'}
+: None should equal (True, False)
+Completed in 0.60ms
+Dungeon 5
+Input: {'doors': ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11'],
+ 'goal': 'L',
+ 'rooms': {'A': {'exits': [{'door': None, 'to': 'E'}, {'door': 'D1', 'to': 'F'}, {'door': 'D2', 'to': 'B'}], 'keys': 1},
+           'B': {'exits': [{'door': None, 'to': 'F'}, {'door': None, 'to': 'G'}, {'door': 'D2', 'to': 'A'}, {'door': 'D3', 'to': 'I'}, {'door': 'D6', 'to': 'K'}, {'door': 'D7', 'to': 'L'}],
+                 'keys': 0},
+           'C': {'exits': [{'door': None, 'to': 'G'}, {'door': None, 'to': 'D'}, {'door': 'D9', 'to': 'K'}], 'keys': 0},
+           'D': {'exits': [{'door': None, 'to': 'G'}, {'door': None, 'to': 'C'}, {'door': 'D11', 'to': 'J'}], 'keys': 0},
+           'E': {'exits': [{'door': None, 'to': 'G'}, {'door': None, 'to': 'A'}, {'door': None, 'to': 'F'}], 'keys': 0},
+           'F': {'exits': [{'door': None, 'to': 'E'}, {'door': None, 'to': 'B'}, {'door': None, 'to': 'J'}, {'door': 'D1', 'to': 'A'}, {'door': 'D8', 'to': 'K'}], 'keys': 2},
+           'G': {'exits': [{'door': None, 'to': 'E'}, {'door': None, 'to': 'D'}, {'door': None, 'to': 'C'}, {'door': None, 'to': 'B'}, {'door': 'D5', 'to': 'I'}], 'keys': 0},
+           'H': {'exits': [{'door': None, 'to': 'J'}, {'door': 'D4', 'to': 'I'}], 'keys': 0},
+           'I': {'exits': [{'door': None, 'to': 'L'}, {'door': 'D3', 'to': 'B'}, {'door': 'D4', 'to': 'H'}, {'door': 'D5', 'to': 'G'}, {'door': 'D10', 'to': 'J'}], 'keys': 0},
+           'J': {'exits': [{'door': None, 'to': 'H'}, {'door': None, 'to': 'F'}, {'door': 'D10', 'to': 'I'}, {'door': 'D11', 'to': 'D'}], 'keys': 0},
+           'K': {'exits': [{'door': 'D6', 'to': 'B'}, {'door': 'D8', 'to': 'F'}, {'door': 'D9', 'to': 'C'}], 'keys': 0},
+           'L': {'exits': [{'door': None, 'to': 'I'}, {'door': 'D7', 'to': 'B'}], 'keys': 0}},
+ 'start': 'A'}
+: None should equal (True, False)
+Completed in 1.29ms
+Dungeon 6
+Input: {'doors': ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11'],
+ 'goal': 'L',
+ 'rooms': {'A': {'exits': [{'door': None, 'to': 'E'}, {'door': 'D1', 'to': 'F'}, {'door': 'D2', 'to': 'B'}], 'keys': 1},
+           'B': {'exits': [{'door': None, 'to': 'F'}, {'door': None, 'to': 'G'}, {'door': 'D2', 'to': 'A'}, {'door': 'D3', 'to': 'I'}, {'door': 'D6', 'to': 'K'}, {'door': 'D7', 'to': 'L'}],
+                 'keys': 0},
+           'C': {'exits': [{'door': None, 'to': 'G'}, {'door': None, 'to': 'D'}, {'door': 'D9', 'to': 'K'}], 'keys': 0},
+           'D': {'exits': [{'door': None, 'to': 'G'}, {'door': None, 'to': 'C'}, {'door': 'D11', 'to': 'J'}], 'keys': 0},
+           'E': {'exits': [{'door': None, 'to': 'G'}, {'door': None, 'to': 'A'}, {'door': None, 'to': 'F'}], 'keys': 0},
+           'F': {'exits': [{'door': None, 'to': 'E'}, {'door': None, 'to': 'B'}, {'door': None, 'to': 'J'}, {'door': 'D1', 'to': 'A'}, {'door': 'D8', 'to': 'K'}], 'keys': 2},
+           'G': {'exits': [{'door': None, 'to': 'E'}, {'door': None, 'to': 'D'}, {'door': None, 'to': 'C'}, {'door': None, 'to': 'B'}, {'door': 'D5', 'to': 'I'}], 'keys': 0},
+           'H': {'exits': [{'door': None, 'to': 'J'}, {'door': 'D4', 'to': 'I'}], 'keys': 0},
+           'I': {'exits': [{'door': None, 'to': 'L'}, {'door': 'D3', 'to': 'B'}, {'door': 'D4', 'to': 'H'}, {'door': 'D5', 'to': 'G'}, {'door': 'D10', 'to': 'J'}], 'keys': 0},
+           'J': {'exits': [{'door': None, 'to': 'H'}, {'door': None, 'to': 'F'}, {'door': 'D10', 'to': 'I'}, {'door': 'D11', 'to': 'D'}], 'keys': 0},
+           'K': {'exits': [{'door': 'D6', 'to': 'B'}, {'door': 'D8', 'to': 'F'}, {'door': 'D9', 'to': 'C'}], 'keys': 0},
+           'L': {'exits': [{'door': None, 'to': 'I'}, {'door': 'D7', 'to': 'B'}], 'keys': 0}},
+ 'start': 'A'}
+: None should equal (True, False)
+Completed in 1.28ms
+Completed in 4.63ms
