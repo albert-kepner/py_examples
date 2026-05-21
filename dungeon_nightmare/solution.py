@@ -13,6 +13,8 @@ def initial_state(dungeon):
     state = State(open_doors, key_count, in_room)
     return state
 
+def next_state
+
 def go_to_room( state: State, passage: dict ) -> State | None:
     open_doors = state['open_doors']
     key_count = state['key_count']
